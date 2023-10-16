@@ -1,0 +1,38 @@
+name: Test Building librsvg
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  CARGO_NAME: "relm-test"
+
+jobs:
+  build-windows:
+    name: Test Building librsvg
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Move git binary
+        run: |
+          Move-Item "C:\Program Files\Git\usr\bin" "C:\Program Files\Git\usr\notbin"
+          Move-Item "C:\Program Files\Git\bin" "C:\Program Files\Git\notbin"
+
+      - name: Build GTK4
+        run: |
+          python -m pip install --user pipx
+          python -m pipx ensurepath
+          pipx install gvsbuild
+          gvsbuild build librsvg --ninja-opts -j2
+
+      - name: Restore git binary
+        run: |
+          Move-Item "C:\Program Files\Git\usr\notbin" "C:\Program Files\Git\usr\bin"
+          Move-Item "C:\Program Files\Git\notbin" "C:\Program Files\Git\bin"
+
+      - name: Tree GTK release
+        run: tree C:\gtk-build\gtk\x64\
